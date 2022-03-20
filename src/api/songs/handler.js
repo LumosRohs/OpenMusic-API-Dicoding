@@ -1,28 +1,29 @@
 const ClientError = require('../../exceptions/ClientError')
 
-class AlbumsHandler {
+class SongsHandler {
   constructor (service, validator) {
     this._service = service
     this._validator = validator
 
-    this.postAlbumHandler = this.postAlbumHandler.bind(this)
-    this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this)
-    this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this)
-    this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this)
+    this.postSongHandler = this.postSongHandler.bind(this)
+    this.getSongsHandler = this.getSongsHandler.bind(this)
+    this.getSongByIdHandler = this.getSongByIdHandler.bind(this)
+    this.putSongByIdHandler = this.putSongByIdHandler.bind(this)
+    this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this)
   }
 
-  async postAlbumHandler (request, h) {
+  async postSongHandler (request, h) {
     try {
-      this._validator.validateAlbumPayload(request.payload)
-      const { name, year } = request.payload
+      this._validator.validateSongPayload(request.payload)
+      const { title, year, genre, performer, duration, albumId } = request.payload
 
-      const albumId = await this._service.addAlbum({ name, year })
+      const songId = await this._service.addSong({ title, year, genre, performer, duration, albumId })
 
       const response = h.response({
         status: 'success',
-        message: 'Album berhasil ditambahkan',
+        message: 'Song berhasil ditambahkan',
         data: {
-          albumId
+          songId
         }
       })
       response.code(201)
@@ -48,14 +49,24 @@ class AlbumsHandler {
     }
   }
 
-  async getAlbumByIdHandler (request, h) {
+  async getSongsHandler (request) {
+    const songs = await this._service.getSongs()
+    return {
+      status: 'success',
+      data: {
+        songs
+      }
+    }
+  }
+
+  async getSongByIdHandler (request, h) {
     try {
       const { id } = request.params
-      const album = await this._service.getAlbumById(id)
+      const song = await this._service.getSongById(id)
       return {
         status: 'success',
         data: {
-          album
+          song
         }
       }
     } catch (error) {
@@ -79,16 +90,16 @@ class AlbumsHandler {
     }
   }
 
-  async putAlbumByIdHandler (request, h) {
+  async putSongByIdHandler (request, h) {
     try {
-      this._validator.validateAlbumPayload(request.payload)
+      this._validator.validateSongPayload(request.payload)
       const { id } = request.params
 
-      await this._service.editAlbumById(id, request.payload)
+      await this._service.editSongById(id, request.payload)
 
       return {
         status: 'success',
-        message: 'Album berhasil diperbarui'
+        message: 'Song berhasil diperbarui'
       }
     } catch (error) {
       if (error instanceof ClientError) {
@@ -111,13 +122,13 @@ class AlbumsHandler {
     }
   }
 
-  async deleteAlbumByIdHandler (request, h) {
+  async deleteSongByIdHandler (request, h) {
     try {
       const { id } = request.params
-      await this._service.deleteAlbumById(id)
+      await this._service.deleteSongById(id)
       return {
         status: 'success',
-        message: 'Album berhasil dihapus'
+        message: 'Song berhasil dihapus'
       }
     } catch (error) {
       if (error instanceof ClientError) {
@@ -141,4 +152,4 @@ class AlbumsHandler {
   }
 }
 
-module.exports = AlbumsHandler
+module.exports = SongsHandler
