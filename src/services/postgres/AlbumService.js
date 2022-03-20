@@ -32,11 +32,25 @@ class AlbumService {
     }
     const result = await this._pool.query(query)
 
+    const query2 = {
+      text: 'SELECT * FROM songs WHERE albumid = $1',
+      values: [id]
+    }
+    const result2 = await this._pool.query(query2)
+
     if (!result.rows.length) {
       throw new NotFoundError('Album tidak ditemukan')
     }
 
-    return result.rows[0]
+    const album = result.rows[0]
+    const songs = result2.rows
+
+    return {
+      id: album.id,
+      name: album.name,
+      year: album.year,
+      songs: songs
+    }
   }
 
   async editAlbumById (id, { name, year }) {

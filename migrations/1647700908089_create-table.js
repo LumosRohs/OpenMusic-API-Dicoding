@@ -41,10 +41,11 @@ exports.up = pgm => {
       type: 'INTEGER',
       notNull: false
     },
-    albumId: {
+    albumid: {
       type: 'VARCHAR(50)',
       notNull: false,
-      references: '"albums"'
+      references: '"albums"',
+      default: null
     }
   })
 }
