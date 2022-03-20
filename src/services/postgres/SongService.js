@@ -28,16 +28,18 @@ class SongService {
   async getSongs (title, performer) {
     let query = 'SELECT id, title, performer FROM songs'
 
+    const filters = []
+
     if (title !== undefined) {
-      query += ` WHERE LOWER (title) LIKE '%${title}%'`
+      filters.push(`LOWER (title) LIKE '%${title}%'`)
     }
 
     if (performer !== undefined) {
-      query += ` WHERE LOWER (performer) LIKE '%${performer}%'`
+      filters.push(`LOWER (performer) LIKE '%${performer}%'`)
     }
 
-    if (title !== undefined && performer !== undefined) {
-      query = `SELECT id, title, performer FROM songs WHERE LOWER (title) LIKE '%${title}%' AND LOWER (performer) LIKE '%${performer}%'`
+    if (filters.length > 0) {
+      query += ' WHERE ' + filters.join(' AND ')
     }
 
     const result = await this._pool.query(query)
