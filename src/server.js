@@ -6,6 +6,7 @@ const songs = require('./api/songs')
 const AlbumService = require('./services/postgres/AlbumService')
 const SongService = require('./services/postgres/SongService')
 const { AlbumValidator, SongValidator } = require('./validator/albums')
+const ClientError = require('./exceptions/ClientError')
 
 const init = async () => {
   const albumsService = new AlbumService()
@@ -20,20 +21,34 @@ const init = async () => {
     }
   })
 
-  await server.register({
+  await server.register([{
     plugin: albums,
     options: {
       service: albumsService,
       validator: AlbumValidator
     }
-  })
-
-  await server.register({
+  }, {
     plugin: songs,
     options: {
       service: songsService,
       validator: SongValidator
     }
+  }])
+
+  server.ext('onPreResponse', (request, h) => {
+    // mendapatkan konteks response dari request
+    const { response } = request
+    if (response instanceof ClientError) {
+      // membuat response baru dari response toolkit sesuai kebutuhan error handling
+      const newResponse = h.response({
+        status: 'fail',
+        message: response.message
+      })
+      newResponse.code(response.statusCode)
+      return newResponse
+    }
+    // jika bukan ClientError, lanjutkan dengan response sebelumnya (tanpa terintervensi)
+    return response.continue || response
   })
 
   await server.start()
