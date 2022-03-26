@@ -41,7 +41,7 @@ exports.up = pgm => {
       type: 'INTEGER',
       notNull: false
     },
-    albumid: {
+    album_id: {
       type: 'VARCHAR(50)',
       notNull: false,
       references: '"albums"',
@@ -51,6 +51,6 @@ exports.up = pgm => {
 }
 
 exports.down = pgm => {
-  pgm.dropTable('albums')
   pgm.dropTable('songs')
+  pgm.dropTable('albums')
 }

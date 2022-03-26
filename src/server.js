@@ -6,12 +6,12 @@ const ClientError = require('./exceptions/ClientError')
 
 // albums
 const albums = require('./api/albums')
-const AlbumService = require('./services/postgres/AlbumService')
+const AlbumsService = require('./services/postgres/AlbumsService')
 const AlbumValidator = require('./validator/albums')
 
 // songs
 const songs = require('./api/songs')
-const SongService = require('./services/postgres/SongService')
+const SongsService = require('./services/postgres/SongsService')
 const SongValidator = require('./validator/songs')
 
 // users
@@ -25,11 +25,17 @@ const AuthenticationsService = require('./services/postgres/AuthenticationsServi
 const TokenManager = require('./tokenize/TokenManager')
 const AuthenticationsValidator = require('./validator/authentications')
 
+// playlists
+const playlists = require('./api/playlists')
+const PlaylistsService = require('./services/postgres/PlaylistsService')
+const PlaylistsValidator = require('./validator/playlists')
+
 const init = async () => {
-  const albumsService = new AlbumService()
-  const songsService = new SongService()
+  const albumsService = new AlbumsService()
+  const songsService = new SongsService()
   const usersService = new UsersService()
   const authenticationsService = new AuthenticationsService()
+  const playlistsService = new PlaylistsService()
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -47,7 +53,7 @@ const init = async () => {
     }
   ])
 
-  server.auth.strategy('openmusic_jwt', 'jwt', {
+  server.auth.strategy('openmusicapp_jwt', 'jwt', {
     keys: process.env.ACCESS_TOKEN_KEY,
     verify: {
       aud: false,
@@ -91,6 +97,13 @@ const init = async () => {
       usersService,
       tokenManager: TokenManager,
       validator: AuthenticationsValidator
+    }
+  },
+  {
+    plugin: playlists,
+    options: {
+      service: playlistsService,
+      validator: PlaylistsValidator
     }
   }
   ])
