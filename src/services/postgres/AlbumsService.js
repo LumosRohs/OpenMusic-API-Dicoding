@@ -33,7 +33,7 @@ class AlbumService {
     const result = await this._pool.query(query)
 
     const query2 = {
-      text: 'SELECT id, title, performer FROM songs WHERE albumid = $1',
+      text: 'SELECT id, title, performer FROM songs WHERE album_id = $1',
       values: [id]
     }
     const result2 = await this._pool.query(query2)

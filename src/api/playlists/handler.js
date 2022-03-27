@@ -9,6 +9,7 @@ class PlaylistsHandler {
     this.postSongIntoPlaylistHandler = this.postSongIntoPlaylistHandler.bind(this)
     this.GetSongInPlaylistHandler = this.GetSongInPlaylistHandler.bind(this)
     this.DeleteSongFromPlaylistHandler = this.DeleteSongFromPlaylistHandler.bind(this)
+    this.getActivitiesHandler = this.getActivitiesHandler.bind(this)
   }
 
   async postPlaylistHandler (request, h) {
@@ -31,7 +32,7 @@ class PlaylistsHandler {
     return response
   }
 
-  async getPlaylistsHandler (request) {
+  async getPlaylistsHandler (request, h) {
     const { id: credentialId } = request.auth.credentials
     const playlists = await this._service.getPlaylists(credentialId)
     return {
@@ -62,7 +63,7 @@ class PlaylistsHandler {
     const { id: credentialId } = request.auth.credentials
 
     await this._service.verifySongId(songId)
-    await this._service.verifyPlaylistOwner(id, credentialId)
+    await this._service.verifyPlaylistAccess(id, credentialId)
     await this._service.addSongIntoPlaylist({
       id, songId
     })
@@ -72,6 +73,9 @@ class PlaylistsHandler {
       message: 'Song berhasil ditambahkan ke dalam Playlist'
     })
     response.code(201)
+
+    await this._service.addActivity(id, songId, credentialId, 'add')
+
     return response
   }
 
@@ -79,7 +83,7 @@ class PlaylistsHandler {
     const { id } = request.params
     const { id: credentialId } = request.auth.credentials
 
-    await this._service.verifyPlaylistOwner(id, credentialId)
+    await this._service.verifyPlaylistAccess(id, credentialId)
     const playlist = await this._service.getSongsInPlaylist({
       id
     })
@@ -92,18 +96,32 @@ class PlaylistsHandler {
     }
   }
 
-  async DeleteSongFromPlaylistHandler (request, h) {
+  async DeleteSongFromPlaylistHandler (request) {
     this._validator.validateDeleteSongFromPlaylistPayload(request.payload)
     const { id } = request.params
     const { songId } = request.payload
     const { id: credentialId } = request.auth.credentials
 
-    await this._service.verifyPlaylistOwner(id, credentialId)
+    await this._service.verifyPlaylistAccess(id, credentialId)
     await this._service.deleteSongFromPlaylist(id, songId)
+
+    await this._service.addActivity(id, songId, credentialId, 'delete')
 
     return {
       status: 'success',
       message: 'Song berhasil dihapus dari Playlist'
+    }
+  }
+
+  async getActivitiesHandler (request, h) {
+    const { id } = request.params
+    const { id: credentialId } = request.auth.credentials
+
+    await this._service.verifyPlaylistAccess(id, credentialId)
+    const activities = await this._service.getActivity(id)
+    return {
+      status: 'success',
+      data: activities
     }
   }
 }
