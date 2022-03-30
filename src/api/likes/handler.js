@@ -35,12 +35,15 @@ class LikesHandler {
   async getAlbumLikesByIdHandler (request, h) {
     const { albumId } = request.params
     const likes = await this._service.getAlbumLikesById(albumId)
-    return {
+    const response = h.response({
       status: 'success',
       data: {
         likes
       }
-    }
+    })
+    response.code(200)
+    response.header('X-Data-Source', 'cache')
+    return response
   }
 }
 
