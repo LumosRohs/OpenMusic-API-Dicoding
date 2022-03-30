@@ -11,7 +11,7 @@ class PlaylistService {
   }
 
   async addPlaylist ({ name, owner }) {
-    const id = 'playlist-' + nanoid(16)
+    const id = `playlist-${nanoid(16)}`
 
     const query = {
       text: 'INSERT INTO playlists VALUES($1, $2, $3) RETURNING id',
@@ -32,9 +32,8 @@ class PlaylistService {
       text: 'SELECT playlists.id, playlists.name, users.username FROM playlists LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id INNER JOIN users ON users.id = playlists.owner WHERE playlists.owner = $1 OR collaborations.user_id = $1',
       values: [owner]
     }
-    const result = await this._pool.query(query)
-
-    return result.rows
+    const { rows } = await this._pool.query(query)
+    return rows
   }
 
   async deletePlaylist (id) {
