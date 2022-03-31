@@ -53,7 +53,10 @@ class LikeService {
   async getAlbumLikesById (albumId) {
     try {
       const result = await this._cacheService.get(`likes:${albumId}`)
-      return JSON.parse(result)
+      return {
+        likes: parseInt(JSON.parse(result)),
+        cache: true
+      }
     } catch (error) {
       const query = {
         text: 'SELECT COUNT(*) FROM user_album_likes WHERE album_id = $1',
@@ -65,9 +68,12 @@ class LikeService {
         throw new NotFoundError('Album tidak ditemukan')
       }
 
-      await this._cacheService.set(`likes:${albumId}`, parseInt(JSON.stringify(rows[0].count)))
+      await this._cacheService.set(`likes:${albumId}`, JSON.stringify(rows[0].count))
 
-      return parseInt(rows[0].count)
+      return {
+        likes: parseInt(rows[0].count),
+        cache: false
+      }
     }
   }
 
